@@ -1,28 +1,28 @@
 {
   "name": "mi-apiario",
   "short_name": "mi-apiario",
-  "id": "/mi-cuaderno/",
-  "start_url": "/mi-cuaderno/",
-  "scope": "/mi-cuaderno/",
+  "id": "/apivoz/",
+  "start_url": "/apivoz/",
+  "scope": "/apivoz/",
   "display": "standalone",
   "background_color": "#f3efe4",
   "theme_color": "#f3efe4",
   "lang": "es",
   "icons": [
     {
-      "src": "/mi-cuaderno/icon-192.png",
+      "src": "/apivoz/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/mi-cuaderno/icon-512.png",
+      "src": "/apivoz/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/mi-cuaderno/__grok/icon-180.png",
+      "src": "/apivoz/__grok/icon-180.png",
       "sizes": "180x180",
       "type": "image/png"
     }
