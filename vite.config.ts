@@ -149,7 +149,7 @@ function authPopupPlugin(): Plugin {
 // GitHub Pages is static-only: `PAGES=1` enables SPA mode, skips Nitro/Vercel,
 // and sets `base` to the project subpath. Default `npm run build` is unchanged.
 const isPages = process.env.PAGES === "1";
-const pagesBase = process.env.PAGES_BASE || "/mi-cuaderno/";
+const pagesBase = process.env.PAGES_BASE || "/apivoz/";
 const pagesBasepath = pagesBase.replace(/\/+$/, "") || "/";
 
 export default defineConfig(({ command, isPreview }) => ({

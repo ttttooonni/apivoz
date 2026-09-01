@@ -8,4 +8,6 @@ export * from "./labels";
 export * from "./queens";
 export * from "./sample";
 export * from "./selectors";
+export * from "./speech";
 export * from "./types";
+export * from "./voice-parse";

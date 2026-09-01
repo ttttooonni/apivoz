@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { BookOpen, CircleDot, Download, Hexagon, Scale, Shield } from "lucide-react";
+import { BookOpen, CircleDot, Download, Hexagon, Mic, Scale, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,7 +21,7 @@ import { hasSeenTutorial, markTutorialSeen, TUTORIAL_STEPS } from "@/lib/apiary/
 import { useInstallApp } from "./install-app";
 import { cn } from "@/lib/utils";
 
-const ICONS = [BookOpen, Hexagon, CircleDot, Shield, Scale, Download] as const;
+const ICONS = [BookOpen, Hexagon, CircleDot, Shield, Scale, Mic, Download] as const;
 
 type TutorialContextValue = {
   show: () => void;

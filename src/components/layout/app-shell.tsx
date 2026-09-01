@@ -3,6 +3,7 @@ import { Archive, CircleHelp, Hexagon, History, Home, Scale, Shield } from "luci
 import type { ReactNode } from "react";
 import { InstallAppButton } from "@/components/apiary/install-app";
 import { useTutorial } from "@/components/apiary/tutorial";
+import { VoiceFillButton, VoiceFillFab } from "@/components/apiary/voice-fill";
 import { HiveMark } from "@/components/brand/hive-mark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="grid gap-2 px-3 pb-5">
+          <VoiceFillButton />
           <Button type="button" variant="outline" size="sm" onClick={show}>
             <CircleHelp />
             Guía
@@ -67,6 +69,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="mx-auto w-full max-w-5xl px-4 pt-5 pb-28 md:pl-[calc(15rem+2rem)] md:pr-8 md:pt-8 md:pb-12">
         {children}
       </main>
+
+      <VoiceFillFab />
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] md:hidden">
         <div className="grid grid-cols-6">

@@ -3,7 +3,7 @@
  * Static SPA build for GitHub Pages (no Node server).
  * Default `npm run build` stays on the Vercel/Nitro path.
  *
- *   PAGES_BASE=/mi-cuaderno/ npm run build:pages
+ *   PAGES_BASE=/apivoz/ npm run build:pages
  */
 import {
   copyFileSync,
@@ -20,7 +20,7 @@ import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 const dest = join(root, "dist", "pages");
-const base = process.env.PAGES_BASE || "/mi-cuaderno/";
+const base = process.env.PAGES_BASE || "/apivoz/";
 const basePrefix = base.endsWith("/") ? base.slice(0, -1) : base;
 const startUrl = `${basePrefix}/`;
 

@@ -55,7 +55,7 @@ function Home() {
       </p>
       <h1 className="mt-1 font-display text-3xl font-medium tracking-tight">Inicio</h1>
       <p className="mt-1 mb-6 max-w-xl text-sm text-muted-foreground">
-        Cuaderno de explotación. Lo importante, a mano.
+        Cuaderno de explotación. Lo importante, a mano. También puedes dictar el asiento.
       </p>
 
       {empty ? (
