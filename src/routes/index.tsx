@@ -1,3 +1,4 @@
+import { Mic } from "lucide-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -6,6 +7,7 @@ import { EmptyState } from "@/components/apiary/empty-state";
 import { InstallAppButton } from "@/components/apiary/install-app";
 import { StatCard } from "@/components/apiary/stat-card";
 import { useTutorial } from "@/components/apiary/tutorial";
+import { useVoiceMode } from "@/components/apiary/voice-mode";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -31,6 +33,7 @@ function Home() {
   const { data, error } = useNotebook();
   const { saveApiary, loadSample } = useAppMutations();
   const { show } = useTutorial();
+  const { start: startVoice } = useVoiceMode();
   const [createOpen, setCreateOpen] = useState(false);
   const year = currentYear();
 
@@ -55,7 +58,7 @@ function Home() {
       </p>
       <h1 className="mt-1 font-display text-3xl font-medium tracking-tight">Inicio</h1>
       <p className="mt-1 mb-6 max-w-xl text-sm text-muted-foreground">
-        Cuaderno de explotación. Lo importante, a mano. También puedes dictar el asiento.
+        Cuaderno de explotación. Con guantes: un toque y se inspecciona por voz.
       </p>
 
       {empty ? (
@@ -131,6 +134,18 @@ function Home() {
                 </div>
               ))}
             </dl>
+          </Card>
+
+          <Card className="mt-4 p-5">
+            <h2 className="font-display text-lg font-medium">Modo voz</h2>
+            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+              El teléfono habla. Tú dices el apiario, la colmena y la acción. «Guarda», «siguiente» o
+              «salir». No hace falta mirar la pantalla.
+            </p>
+            <Button className="mt-4" onClick={startVoice}>
+              <Mic />
+              Entrar en modo voz
+            </Button>
           </Card>
 
           <div className="mt-4 flex flex-wrap gap-2">

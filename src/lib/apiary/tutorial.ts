@@ -1,4 +1,4 @@
-export const TUTORIAL_KEY = "mi-apiario:tutorial-v3";
+export const TUTORIAL_KEY = "mi-apiario:tutorial-v4";
 
 export const TUTORIAL_STEPS = [
   {
@@ -22,8 +22,8 @@ export const TUTORIAL_STEPS = [
     body: "Los lotes se anotan en la sala de extracción, no en el número de colmena. El censo de un año cerrado no se inventa a partir de las colmenas de hoy.",
   },
   {
-    title: "Rellenar por voz",
-    body: "Dicta como en el colmenar: «tratamiento de varroa en la 12 con oxálico». Se propone el asiento y no se guarda hasta que confirmes. En iPhone también vale el micrófono del teclado.",
+    title: "Modo voz, a manos libres",
+    body: "Un toque y el teléfono habla. Di el apiario, el número de colmena y la acción. Confirma con «guarda». Siguiente colmena, «cancela» o «salir». Pensado para el traje y los guantes.",
   },
   {
     title: "Descarga la aplicación",

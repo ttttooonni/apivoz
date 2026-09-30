@@ -12,6 +12,11 @@ import type {
   ProductKind,
 } from "./types";
 
+export type VoiceContext = {
+  apiaryId?: string;
+  colonyId?: string;
+};
+
 export type VoiceDraft =
   | {
       kind: "health";
@@ -34,6 +39,9 @@ export type VoiceDraft =
       supersQty?: number;
       harvestQty?: number;
       queenOrigin?: string;
+      queenRetireReason?: string;
+      moveToApiaryId?: string;
+      treatmentProduct?: string;
       summary: string;
     }
   | {
@@ -183,8 +191,14 @@ function collectNumbers(text: string): string[] {
   return [...new Set(found)];
 }
 
-function matchColonies(state: AppState, text: string): { colonies: Colony[]; hint?: string } {
-  const apiary = findApiary(state, text);
+function matchColonies(
+  state: AppState,
+  text: string,
+  ctx?: VoiceContext,
+): { colonies: Colony[]; hint?: string } {
+  const named = findApiary(state, text);
+  const apiary =
+    named ?? (ctx?.apiaryId ? state.apiaries.find((item) => item.id === ctx.apiaryId) : undefined);
   const pool = apiary
     ? state.colonies.filter((item) => item.apiaryId === apiary.id)
     : state.colonies;
@@ -203,6 +217,10 @@ function matchColonies(state: AppState, text: string): { colonies: Colony[]; hin
   const preferHive = /\bcolmena/.test(text);
   const tokens = collectNumbers(stripNoise(text));
   if (tokens.length === 0) {
+    if (ctx?.colonyId) {
+      const current = pool.find((item) => item.id === ctx.colonyId) ?? state.colonies.find((item) => item.id === ctx.colonyId);
+      if (current) return { colonies: [current] };
+    }
     return { colonies: [], hint: "Di el número: «colmena 12» o «núcleo N1»." };
   }
 
@@ -270,10 +288,15 @@ function detectTopic(text: string): { topic: HealthTopic; healthKind: HealthKind
     return { topic: "varroa", healthKind: asTreatment ? "treatment" : kind === "treatment" ? "observation" : kind };
   }
   if (/\bnosema\b/.test(text)) return { topic: "nosema", healthKind: kind };
-  if (/\bloque\b/.test(text)) return { topic: "foulbrood", healthKind: kind };
-  if (/\bpollo escayolado|ascosfera\b/.test(text)) return { topic: "chalkbrood", healthKind: kind };
-  if (/\bvelutina|avispa\b/.test(text)) return { topic: "hornet", healthKind: kind };
+  if (/\bloque|loque americana|loque europea\b/.test(text)) return { topic: "foulbrood", healthKind: kind };
+  if (/\bpollo escayolado|ascosfera|ascosferosis\b/.test(text)) {
+    return { topic: "chalkbrood", healthKind: kind };
+  }
+  if (/\bvelutina|avispa|avispon\b/.test(text)) return { topic: "hornet", healthKind: kind };
   if (/\bvigilancia\b/.test(text)) return { topic: "surveillance", healthKind: "observation" };
+  if (/\botro\b/.test(text) && /\b(sanidad|sanitario|tema|incidencia)\b/.test(text)) {
+    return { topic: "other", healthKind: kind };
+  }
   if (/\btratamiento|trate|aplique|oxalic|amitraz|formic|timol|flumetrin\b/.test(text)) {
     return { topic: "varroa", healthKind: "treatment" };
   }
@@ -309,7 +332,7 @@ function leftoverNotes(original: string): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-export function parseVoice(raw: string, state: AppState): VoiceDraft {
+export function parseVoice(raw: string, state: AppState, ctx?: VoiceContext): VoiceDraft {
   const original = raw.trim();
   if (!original) {
     return {
@@ -321,7 +344,12 @@ export function parseVoice(raw: string, state: AppState): VoiceDraft {
     return { kind: "unknown", hint: "Primero crea un apiario y una colmena." };
   }
 
-  const text = replaceNumberWords(foldEs(original));
+  const text = replaceNumberWords(foldEs(original))
+    .replace(/\bbarroa\b/g, "varroa")
+    .replace(/\bn[uú]?mero\b/g, " ")
+    .replace(/\bnº\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   const date = parseDate(text);
   const productKind = detectProductKind(text);
   const qty = parseQuantity(text);
@@ -341,7 +369,7 @@ export function parseVoice(raw: string, state: AppState): VoiceDraft {
   }
 
   const topic = detectTopic(text);
-  const { colonies, hint } = matchColonies(state, text);
+  const { colonies, hint } = matchColonies(state, text, ctx);
 
   if (topic) {
     if (colonies.length === 0) {
@@ -375,13 +403,56 @@ export function parseVoice(raw: string, state: AppState): VoiceDraft {
   const label = colonyLabel(state, colony);
 
   if (/\bcambio de reina|cambie la reina|reina nueva\b/.test(text)) {
+    const origin = text.match(/\borigen\s+([a-z0-9 ]{2,40})/)?.[1]?.trim();
+    const reason = text.match(/\bmotivo\s+([a-z0-9 ]{2,40})/)?.[1]?.trim();
     return {
       kind: "action",
       colonyId: colony.id,
       type: "change_queen",
       date,
       notes: leftoverNotes(original),
+      queenOrigin: origin,
+      queenRetireReason: reason,
       summary: `Cambio de reina · ${label} · ${date}`,
+    };
+  }
+
+  if (/\b(dividir|division|parti la colmena|particion)\b/.test(text)) {
+    return {
+      kind: "action",
+      colonyId: colony.id,
+      type: "split",
+      date,
+      notes: leftoverNotes(original),
+      summary: `Dividir colmena · ${label} · ${date}`,
+    };
+  }
+
+  if (/\b(crear nucleo|nucleo nuevo|saque un nucleo|hice un nucleo)\b/.test(text)) {
+    return {
+      kind: "action",
+      colonyId: colony.id,
+      type: "create_nuc",
+      date,
+      notes: leftoverNotes(original),
+      summary: `Crear núcleo · ${label} · ${date}`,
+    };
+  }
+
+  if (/\b(mover|traslad|cambio de apiario|la pase)\b/.test(text)) {
+    const dest = [...state.apiaries]
+      .sort((a, b) => foldEs(b.name).length - foldEs(a.name).length)
+      .find((item) => item.id !== colony.apiaryId && foldEs(item.name).length >= 3 && text.includes(foldEs(item.name)));
+    return {
+      kind: "action",
+      colonyId: colony.id,
+      type: "move",
+      date,
+      moveToApiaryId: dest?.id,
+      notes: leftoverNotes(original),
+      summary: dest
+        ? `Mover colmena · ${label} → ${dest.name} · ${date}`
+        : `Mover colmena · ${label} · ${date}`,
     };
   }
 

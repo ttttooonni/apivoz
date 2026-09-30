@@ -3,7 +3,8 @@ import { Archive, CircleHelp, Hexagon, History, Home, Scale, Shield } from "luci
 import type { ReactNode } from "react";
 import { InstallAppButton } from "@/components/apiary/install-app";
 import { useTutorial } from "@/components/apiary/tutorial";
-import { VoiceFillButton, VoiceFillFab } from "@/components/apiary/voice-fill";
+import { VoiceFillButton } from "@/components/apiary/voice-fill";
+import { VoiceModeButton, VoiceModeFab, VoiceModeProvider } from "@/components/apiary/voice-mode";
 import { HiveMark } from "@/components/brand/hive-mark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { show } = useTutorial();
 
   return (
+    <VoiceModeProvider>
     <div className="min-h-dvh bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-card md:flex">
         <div className="flex items-center gap-2.5 px-5 pt-6 pb-5">
@@ -47,6 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="grid gap-2 px-3 pb-5">
+          <VoiceModeButton />
           <VoiceFillButton />
           <Button type="button" variant="outline" size="sm" onClick={show}>
             <CircleHelp />
@@ -70,7 +73,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      <VoiceFillFab />
+      <VoiceModeFab />
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] md:hidden">
         <div className="grid grid-cols-6">
@@ -85,6 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </nav>
     </div>
+    </VoiceModeProvider>
   );
 }
 

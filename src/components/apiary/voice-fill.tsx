@@ -12,16 +12,17 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  getMicStatus,
   newId,
   nowIso,
   parseVoice,
-  speechSupported,
   startDictation,
   suggestLot,
   useAppMutations,
   useNotebook,
   type ColonyAction,
   type HealthRecord,
+  type MicStatus,
   type VoiceDraft,
 } from "@/lib/apiary";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,13 @@ const EXAMPLES = [
   "Revisé la colmena 4, cría compacta",
   "Coseché 25 kilos de miel",
 ];
+
+const MIC_HINT: Record<MicStatus, string> = {
+  ok: "Pulsa Hablar y di el asiento de una vez. Español.",
+  missing: "Este navegador no dicta. Escribe o usa el micrófono del teclado.",
+  iframe: "Este visor bloquea el micrófono. Escribe aquí lo que dirías, o instala la app.",
+  insecure: "El dictado pide una conexión segura. Escribe la frase aquí.",
+};
 
 export function VoiceFillButton({
   className,
@@ -89,8 +97,9 @@ function VoiceFillDialog({
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [mic, setMic] = useState<MicStatus>("ok");
   const stopRef = useRef<(() => void) | null>(null);
-  const canHear = speechSupported();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const draft: VoiceDraft | null = transcript.trim() ? parseVoice(transcript, data) : null;
 
   const stop = useCallback(() => {
@@ -105,7 +114,9 @@ function VoiceFillDialog({
       setTranscript("");
       setError(null);
       setBusy(false);
+      return;
     }
+    setMic(getMicStatus());
   }, [open, stop]);
 
   function listen() {
@@ -114,14 +125,25 @@ function VoiceFillDialog({
       stop();
       return;
     }
+    const status = getMicStatus();
+    setMic(status);
+    if (status === "missing" || status === "insecure") {
+      inputRef.current?.focus();
+      setError(MIC_HINT[status]);
+      return;
+    }
     setListening(true);
     stopRef.current = startDictation({
       onTranscript: (text) => setTranscript(text),
       onError: (message) => {
         setError(message);
         setListening(false);
+        inputRef.current?.focus();
       },
-      onEnd: () => setListening(false),
+      onEnd: () => {
+        setListening(false);
+        stopRef.current = null;
+      },
     });
   }
 
@@ -153,8 +175,11 @@ function VoiceFillDialog({
           framesQty: draft.framesQty,
           supersQty: draft.supersQty,
           harvestQty: draft.harvestQty,
+          moveToApiaryId: draft.moveToApiaryId,
           queenIntroducedAt: draft.type === "change_queen" ? draft.date : undefined,
           queenOrigin: draft.queenOrigin,
+          queenRetireReason: draft.queenRetireReason,
+          treatmentProduct: draft.treatmentProduct,
           createdAt: nowIso(),
         };
         await saveAction.mutateAsync(action);
@@ -190,8 +215,8 @@ function VoiceFillDialog({
         <DialogHeader>
           <DialogTitle>Rellenar por voz</DialogTitle>
           <DialogDescription>
-            Di el registro como en el colmenar. Se propone el asiento y no se guarda hasta que
-            confirmes.
+            Di el registro de una vez, como en el colmenar. Se propone el asiento y no se guarda
+            hasta que confirmes.
           </DialogDescription>
         </DialogHeader>
 
@@ -200,34 +225,27 @@ function VoiceFillDialog({
             type="button"
             variant={listening ? "destructive" : "default"}
             onClick={listen}
-            disabled={!canHear}
             className="h-12"
           >
             {listening ? <Square className="size-4" /> : <Mic className="size-4" />}
-            {listening ? "Parar" : canHear ? "Hablar" : "Micrófono no disponible"}
+            {listening ? "Parar" : "Hablar"}
           </Button>
-          {!canHear ? (
-            <p className="text-sm text-muted-foreground">
-              En este visor o en iPhone, escribe la frase o usa el micrófono del teclado.
-            </p>
-          ) : (
-            <p
-              className={cn(
-                "text-sm",
-                listening ? "text-foreground" : "text-muted-foreground",
-              )}
-              aria-live="polite"
-            >
-              {listening ? "Escuchando…" : "Pulsa Hablar. Español."}
-            </p>
-          )}
+          <p
+            className={cn("text-sm", listening ? "text-foreground" : "text-muted-foreground")}
+            aria-live="polite"
+          >
+            {listening ? "Escuchando… di el asiento ahora." : MIC_HINT[mic]}
+          </p>
 
           <Textarea
+            ref={inputRef}
             value={transcript}
             onChange={(event) => setTranscript(event.target.value)}
             placeholder="Tratamiento de varroa en la colmena 12 con oxálico"
             rows={3}
             lang="es"
+            autoCapitalize="sentences"
+            autoComplete="off"
           />
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
